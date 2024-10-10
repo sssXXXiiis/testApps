@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Task Manager</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.2/css/all.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  </head>
+  <body>
+
+    <div class="container">
+      <input type="text" class="txtb" placeholder="Add a task">
+      <div class="notcomp">
+        <h3>Not Completed</h3>
+      </div>
+
+      <div class="comp">
+        <h3>Completed</h3>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      // Загрузка задач из localStorage при загрузке страницы
+      $(document).ready(function() {
+        loadTasks();
+
+        $(".txtb").on("keyup", function(e) {
+          if (e.keyCode == 13 && $(".txtb").val() != "") {
+            var taskText = $(".txtb").val();
+            addTask(taskText, false);
+            saveTask(taskText, false);
+            $(".txtb").val(""); // Очищаем поле ввода
+          }
+        });
+      });
+
+      // Функция для добавления задачи
+      function addTask(taskText, isCompleted) {
+        var task = $("<div class='task'></div>").text(taskText);
+
+        var del = $("<i class='fas fa-trash-alt'></i>").click(function() {
+          var p = $(this).parent();
+          p.fadeOut(function() {
+            p.remove();
+            saveAllTasks(); // Обновляем данные в localStorage
+          });
+        });
+
+        var check = $("<i class='fas fa-check'></i>").click(function() {
+          var p = $(this).parent();
+          p.fadeOut(function() {
+            $(".comp").append(p);
+            p.fadeIn();
+            check.remove(); // Удаляем иконку после перемещения в "Completed"
+            saveAllTasks(); // Обновляем данные в localStorage
+          });
+        });
+
+        task.append(del, !isCompleted ? check : ""); // Если задача завершена, не добавляем кнопку "check"
+
+        if (isCompleted) {
+          $(".comp").append(task);
+        } else {
+          $(".notcomp").append(task);
+        }
+      }
+
+      // Сохранение одной задачи в localStorage
+      function saveTask(taskText, isCompleted) {
+        var tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+        tasks.push({ text: taskText, completed: isCompleted });
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+      }
+
+      // Загрузка всех задач из localStorage
+      function loadTasks() {
+        var tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+        tasks.forEach(function(task) {
+          addTask(task.text, task.completed);
+        });
+      }
+
+      // Обновление всех задач в localStorage
+      function saveAllTasks() {
+        var tasks = [];
+
+        $(".notcomp .task").each(function() {
+          tasks.push({ text: $(this).text(), completed: false });
+        });
+
+        $(".comp .task").each(function() {
+          tasks.push({ text: $(this).text(), completed: true });
+        });
+
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+      }
+    </script>
+
+  </body>
+</html>
